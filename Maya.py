@@ -144,3 +144,18 @@ def on_message(
             pass
 
     return payload
+
+# --- ADD THIS TO THE END OF MAYA.PY ---
+
+if __name__ == "__main__":
+    print("Bot started! Press Ctrl+C to stop.")
+    while True:
+        # 1. Ask for input
+        text = input("\nYou: ")
+        
+        # 2. Call the function (using dummy ID "1" and empty profile "{}")
+        reply = handle_user_message("1", {}, text)
+        
+        # 3. Print the answer
+        print("Maya:", reply)
+        
