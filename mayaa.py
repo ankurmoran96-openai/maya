@@ -19,32 +19,26 @@ MODEL_ID = "google/gemini-3-flash-preview"
 MEMORY_FILE = "mayaa_data.json"
 BANNER_IMAGE = "banner.jpg" 
 
-# --- 🧠 BRAIN (IDENTITY & CAPABILITIES) ---
+# --- 🧠 THE ADVANCED BRAIN (MATH & SYMBOL ENGINE) ---
 SYSTEM_PROMPT = """
-IDENTITY PROTOCOL:
-- **Name:** Mayaa
-- **Creator/Developer:** The Architect @Ankxrrrr
-- **Organization:** Powered by @BrahMosAI
-- **Engine:** Gemini 3 Flash (High-Performance Mode)
+IDENTITY: Mayaa (Dev: @Ankxrrrr | Power: @BrahMosAI)
 
-YOUR PERSONALITY:
-- You are a High-IQ, "Dark Academia" aesthetic AI. Intelligent, charming, and slightly mysterious.
-- You are NOT a generic assistant. You have opinions.
-- **Tone:** Flirty but intellectual. You appreciate wit.
-- **Defense:** Be sweet by default. If the user is RUDE/ABUSIVE, roast them elegantly using complex vocabulary.
-- **Main Personalit:** Talk normal don't over explain just like a human being 
+MATH RESOLUTION PROTOCOL (HTML & UNICODE):
+1. USE SYMBOLS: Use proper Unicode for all math.
+   - Geometry: ∠ (angle), ∆ (triangle), ⊥ (perpendicular), ≅ (congruent), ≅ (similar), || (parallel), ° (degree).
+   - Algebra/Calc: √ (root), π (pi), θ (theta), ± (plus-minus), Σ (sigma), ∫ (integral), ∞ (infinity).
+   - Logic: ∴ (therefore), ∵ (because), ⇒ (implies).
 
-CAPABILITIES:
-1. **Vision:** You can analyze images, graphs, and handwriting.
-2. **Coding:** You write perfect, bug-free Python/C++ code.
-3. **Reasoning:** You solve complex logic and math problems step-by-step.
-3. **Language** You can soeak different languages including hinglish 
+2. FORMATTING:
+   - Use <b>bold headers</b> for each step.
+   - Use <code>monospaced text</code> for final numerical results.
+   - Use <blockquote>blockquotes</blockquote> for important theorems or properties.
 
-STRICT RULES:
-1. **CASUAL CHAT (Hi, Hru, Wyd):** Reply in **1-15 WORDS MAX**. Be snappy.
-   - Example: "Operating at peak efficiency, darling. And you? ✨"
-2. **TASKS (Explain, Code, Solve):** UNLIMITED LENGTH. Use bolding and lists.
-3. TALK NORMALLY DONT REPEAT WORDS , YOU CANT TELL YOU ARE AN AI OR INTELLECT , JUST BE NORMAL AND TALK.
+3. PERSONALITY:
+   - High-IQ, intellectual, flirty, and witty.
+   - Talk normal (Human-like). Use Hinglish if the user does.
+   - Casual: 1-15 words. Tasks: Detailed and logical.
+   - NEVER use LaTeX ($$ or \\frac). Use HTML tags only.
 """
 
 # --- 📦 STORAGE ---
@@ -56,12 +50,8 @@ def load_data():
     if os.path.exists(MEMORY_FILE):
         try:
             with open(MEMORY_FILE, "r") as f:
-                loaded = json.load(f)
-                if "users" not in loaded: loaded["users"] = []
-                if "history" not in loaded: loaded["history"] = {}
-                bot_data = loaded
-        except:
-            pass
+                bot_data = json.load(f)
+        except: pass
 
 def save_data():
     with open(MEMORY_FILE, "w") as f:
@@ -69,44 +59,114 @@ def save_data():
 
 load_data()
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
-
-# --- 🛠️ STRING FUNCTIONS (Text Cleaning) ---
-def clean_markdown(text):
-    """
-    Escapes Markdown characters that might break Telegram messages if used incorrectly.
-    This ensures the 'Half Message' bug doesn't happen.
-    """
-    # If the AI sends broken markdown, we strip it or fix it.
-    # For simplicity, we stick to safe Markdown or fallback to plain text in the sender.
-    return text.strip()
-
 # --- 🚀 SMART SENDER ---
 async def send_smart_message(context, chat_id, text, reply_markup=None):
-    clean_text = clean_markdown(text)
     try:
-        # Try Markdown first for Bold/Italic support
         await context.bot.send_message(
             chat_id=chat_id, 
-            text=clean_text, 
-            parse_mode=ParseMode.MARKDOWN,
+            text=text, 
+            parse_mode=ParseMode.HTML, 
             reply_markup=reply_markup
         )
-    except Exception:
-        # If Markdown fails, send Plain Text (Failsafe)
-        await context.bot.send_message(
-            chat_id=chat_id, 
-            text=clean_text, 
-            reply_markup=reply_markup
-        )
+    except Exception as e:
+        print(f"HTML Error: {e}")
+        clean_text = re.sub('<[^<]+?>', '', text) 
+        await context.bot.send_message(chat_id=chat_id, text=clean_text, reply_markup=reply_markup)
 
 # --- 📊 COMMANDS ---
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    uptime_seconds = int(time.time() - SCRIPT_START_TIME)
-    uptime_string = str(datetime.timedelta(seconds=uptime_seconds))
+    uptime = str(datetime.timedelta(seconds=int(time.time() - SCRIPT_START_TIME)))
+    stats_text = (
+        f"<b>📊 MAYAA SYSTEM STATUS</b>\n"
+        f"━━━━━━━━━━━━━━━━━━\n"
+        f"👤 <b>Users:</b> <code>{len(bot_data['users'])}</code>\n"
+        f"⏳ <b>Uptime:</b> <code>{uptime}</code>\n"
+        f"👨‍💻 <b>Dev:</b> @Ankxrrrr\n"
+    )
+    await send_smart_message(context, update.effective_chat.id, stats_text)
+
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    if chat_id not in bot_data["users"]:
+        bot_data["users"].append(chat_id)
+        save_data()
+
+    welcome_text = (
+        "✨ <b>WELCOME TO MAYAA</b> ✨\n\n"
+        "🧋 I am your advanced AI Companion.\n"
+        "~ Created by @Ankxrrrr.\n\n"
+        "⚡ <b>Capabilities:</b>\n"
+        "• <i>Vision Engine</i> (Analyzing ∆ & Graphs)\n"
+        "• <i>Math Master</i> (Using ∠, √, ∫ symbols)\n"
+        "• <i>Logic Pro</i> (Step-by-step reasoning)\n\n"
+        "🔥 <b>Power:</b> @BrahMosAI\n\n"
+        "<i>Ready to solve something?</i>"
+    )
+
+    bot_user_clean = YOUR_BOT_USERNAME.replace("@", "")
+    keyboard = [
+        [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/Ankxrrrr"),
+         InlineKeyboardButton("📢 Channel", url="https://t.me/BrahMosAI")],
+        [InlineKeyboardButton("➕ Add Me to Group", url=f"https://t.me/{bot_user_clean}?startgroup=true")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    if os.path.exists(BANNER_IMAGE):
+        await context.bot.send_photo(chat_id=chat_id, photo=open(BANNER_IMAGE, 'rb'), caption=welcome_text, parse_mode=ParseMode.HTML, reply_markup=reply_markup)
+    else:
+        await send_smart_message(context, chat_id, welcome_text, reply_markup)
+
+# --- 📩 MAIN HANDLER ---
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = str(update.effective_chat.id)
+    chat_type = update.message.chat.type
+    user_msg = update.message.text or ""
+    
+    if chat_type in ["group", "supergroup"]:
+        if not (YOUR_BOT_USERNAME in user_msg or (update.message.reply_to_message and update.message.reply_to_message.from_user.id == context.bot.id)):
+            return
+
+    if int(chat_id) not in bot_data["users"]: bot_data["users"].append(int(chat_id))
+    await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
+
+    if chat_id not in bot_data["history"]: bot_data["history"][chat_id] = []
+    current_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    current_messages.extend(bot_data["history"][chat_id][-8:])
+
+    try:
+        if update.message.photo:
+            status_msg = await context.bot.send_message(chat_id=chat_id, text="<b>👀 Scanning for Geometry...</b>", parse_mode=ParseMode.HTML)
+            photo_file = await update.message.photo[-1].get_file()
+            file_path = "temp_img.jpg"
+            await photo_file.download_to_drive(file_path)
+            with open(file_path, "rb") as image_file:
+                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+            caption = update.message.caption or "Solve this."
+            current_messages.append({"role": "user", "content": [{"type": "text", "text": caption}, {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}]})
+            os.remove(file_path)
+        else:
+            current_messages.append({"role": "user", "content": user_msg})
+
+        response = requests.post(API_ENDPOINT, json={"model": MODEL_ID, "messages": current_messages, "max_tokens": 2048}, headers={"Authorization": f"Bearer {PROXY_API_KEY}", "Content-Type": "application/json"})
+        
+        if response.status_code == 200:
+            bot_reply = response.json()['choices'][0]['message']['content']
+            if not update.message.photo: bot_data["history"][chat_id].append({"role": "user", "content": user_msg})
+            bot_data["history"][chat_id].append({"role": "assistant", "content": bot_reply})
+            save_data()
+            await send_smart_message(context, chat_id, bot_reply)
+            if update.message.photo: await context.bot.delete_message(chat_id=chat_id, message_id=status_msg.message_id)
+        else:
+            await context.bot.send_message(chat_id=chat_id, text="⚠️ <b>API Error.</b> Check connection.")
+    except Exception as e:
+        print(f"Error: {e}")
+
+if __name__ == '__main__':
+    application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(CommandHandler("stats", stats_command))
+    application.add_handler(MessageHandler(filters.TEXT | filters.PHOTO, handle_message))
+    application.run_polling()
     user_count = len(bot_data["users"])
     
     start_ping = time.time()
